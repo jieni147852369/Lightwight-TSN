@@ -1,0 +1,94 @@
+#ifndef HAVE_DS_H
+#define HAVE_DS_H
+
+#include "ddt.h"
+#include "fault.h"
+#include "filter.h"
+#include "tsproc.h"
+
+/* clock data sets */
+
+#define DDS_TWO_STEP_FLAG (1<<0)
+#define DDS_SLAVE_ONLY    (1<<1)
+
+struct defaultDS {
+	UInteger8            flags;
+	UInteger8            reserved1;
+	UInteger16           numberPorts;
+	UInteger8            priority1;
+	struct ClockQuality  clockQuality;
+	UInteger8            priority2;
+	struct ClockIdentity clockIdentity;
+	UInteger8            domainNumber;
+	UInteger8            reserved2;
+} PACKED;
+
+#define OUI_LEN 3
+struct clock_description {
+	struct static_ptp_text productDescription;
+	struct static_ptp_text revisionData;
+	struct static_ptp_text userDescription;
+	Octet manufacturerIdentity[OUI_LEN];
+};
+
+struct dataset {
+	UInteger8            priority1;
+	struct ClockIdentity identity;
+	struct ClockQuality  quality;
+	UInteger8            priority2;
+	UInteger8            localPriority; /* Telecom Profile only */
+	UInteger16           stepsRemoved;
+	struct PortIdentity  sender;
+	struct PortIdentity  receiver;
+};
+
+struct currentDS {
+	UInteger16   stepsRemoved;
+	TimeInterval offsetFromMaster;
+	TimeInterval meanPathDelay;
+} PACKED;
+
+struct parentDS {
+	struct PortIdentity  parentPortIdentity;
+	UInteger8            parentStats;
+	UInteger8            reserved;
+	UInteger16           observedParentOffsetScaledLogVariance;
+	Integer32            observedParentClockPhaseChangeRate;
+	UInteger8            grandmasterPriority1;
+	struct ClockQuality  grandmasterClockQuality;
+	UInteger8            grandmasterPriority2;
+	struct ClockIdentity grandmasterIdentity;
+} PACKED;
+
+struct parent_ds {
+	struct parentDS pds;
+	struct ClockIdentity *ptl;
+	unsigned int path_length;
+};
+
+#define CURRENT_UTC_OFFSET  37 /* 1 Jan 2017 */
+#define INTERNAL_OSCILLATOR 0xA0
+#define CLOCK_CLASS_THRESHOLD_DEFAULT 248
+
+struct timePropertiesDS {
+	Integer16    currentUtcOffset;
+	UInteger8    flags;
+	Enumeration8 timeSource;
+} PACKED;
+
+struct portDS {
+	struct PortIdentity portIdentity;
+	Enumeration8        portState;
+	Integer8            logMinDelayReqInterval;
+	TimeInterval        peerMeanPathDelay;
+	Integer8            logAnnounceInterval;
+	UInteger8           announceReceiptTimeout;
+	Integer8            logSyncInterval;
+	Enumeration8        delayMechanism;
+	Integer8            logMinPdelayReqInterval;
+	UInteger8           versionNumber;
+} PACKED;
+
+#define FRI_ASAP (-128)
+
+#endif
